@@ -1,0 +1,95 @@
+﻿
+ Lançamento Financeiro de Saída (FIN)
+
+Precisa adicionar centro de custo
+
+
+
+Centro de custos novos, além da imagem: Imposto e retirada de lucro
+
+Precisa ter Tipo de compra 
+
+
+
+Numero de parcelas,
+
+Chave pix
+
+Armazenar quem lançou o fin
+
+Data de previsão de pagamento  não obrigatorio
+
+e data de pagamento real
+
+Do mais recente para o primeiro a lista de serviços
+
+Qual a filial esta pagando, dentro da edifica possibilita o cadastro de filiaisos FIN, também são cards clicáveis, para que na hora de selecionar aparecer os campos já preenchidos no forms e a preencher:
+
+
+
+FORMS DO Cadastrar Nova Ordem de Serviço (SS)
+
+Cliente final e cliente faturamento, onde o cliente final pode ser o mesmo do faturamento
+
+Cidade e estado
+
+Qual a filial esta pagando, dentro da edifica possibilita o cadastro de filiais
+
+Tipo preventiva ou corretiva somente.
+
+Previsão de gasto aberta em mao de obra e material, sem ser campo obrigatório,
+
+Tirar previsão de termino
+
+Status possíveis : Aguardando Inicio,  Em Andamento, Aguardando OC, Aguardando Faturamento,  Aguardando Pagamento, Pagamento Atrasado, Recebido, Cancelado.
+
+DENTRO DO CARD
+
+Separar em blocos
+
+O status, o botão fica no canto superior direito e não com as demais informações
+
+Informativos
+
+Tem que ter um percentual de quanto esta o BDI até o momento, por exemplo se já gastou 5000 e o serviço é de 12.000 então o BDI é de 140%.tem que ter um custo previsto, além do custo acumulado que já tem, e um campo com a diferenças deles, de uma maneira visual que de a entender que é a diferença entre eles.alterar o lucro líquido, para lucro bruto além do valor real tem que ter o percentual do valor cobrado 
+
+Valor cobrado tem que ser editável, previsão de gastos também
+
+Faturamento
+
+O card tem que ter data de faturamento, número da Nota fiscal, data de recebimento, data de recebimento real, flag de desconto, ai libera o campo de: Descrição desconto e o valor do desconto. Faz a conta, para retirar do valor cobrado e mostra qual o valor recebido real, numero nota fiscal, 
+
+Tem que ter numero de OC, CNPJ de faturamento 
+
+Custos
+
+formatar os lançamentos sim em um bloco dentro do card como se fosse uma tabela com pontas arredondadas, pois esta desorganizado
+
+Comentarios caixa aberta para adicionar comentários com possibilidade de relacionar os cards no comentário, com link clicavel, por exemplo ss-1001 ou fin-1051
+
+anexos
+
+tem que disponibilizar para clicar no anexo e abrir o documento 
+
+TELA PRINCIPAL
+
+Botão de fechar opções laterais não funciona
+
+A pagina de ordens de serviço tem que possibilitar adicionar novos filtros, não só responsável e status.
+
+ A pagina de lançamentos financeiros deve ter possibilidade de filtros assim como a pagina de ordens de serviço
+
+Botão de importar somente como nome de importar sem Jura
+
+Pagina de despesas da empresa ter possibilidade de filtros
+
+Exportar tem que dar para selecionar se quer fin ou ss
+
+Criar pagina inicial de login. Os perfis disponíveis vai ser Gestão e Administrativo. 
+
+Gestão – tem acesso a tudoAdm – limitado a ver SS lançados pelo próprio usuário e fins relacionados a eles, sem página de dashboards, sem conseguir importar e exportarvamos ter três usuários por enquanto e eu cadastro so demais quando necessário:marvin – senha: Edifica0804@ – Perfil: Gestão – Empresa: Edifica Soluções – Filiais: Edifica Soluções e Soler Serv
+
+Jacklima – senha: Edifica0804 – Perfil: Gestão - Empresa: Edifica Soluções – Filiais: Edifica Soluções e Soler ServLuiz_Franco – senha: AdmEdifica1008 – Perfil: Administrativo - Empresa: Edifica Soluções – Filiais: Edifica Soluções
+
+Retirar o simulador de perfil agora que tem login e deixar informações do usuário conectado e o perfilo importar tem que selecionar se é FIN, mantendo com todas as estruturas do FIN, tanto forms como os preenchidos no CARDo importar tem que selecionar se é SS, mantendo com todas as estruturas do SS, tanto forms como os preenchidos no CARD
+

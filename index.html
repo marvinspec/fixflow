@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixFlow | Sistema de Gestão de Serviços & Previsão Financeira</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- PapaParse for CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+
+  <!-- ==================== SCREEN 1: LOGIN VIEW ==================== -->
+  <div id="loginView" class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <div class="logo-icon-lg">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+        <h2>Fix<span class="highlight">Flow</span></h2>
+        <span class="login-subtitle">Edifica Soluções & Filiais</span>
+      </div>
+
+      <form id="formLogin">
+        <div class="form-group">
+          <label><i class="fa-solid fa-user"></i> Nome de Usuário</label>
+          <input type="text" id="loginUsername" class="form-control" placeholder="Digite seu usuário..." required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-lock"></i> Senha</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="Digite sua senha..." required>
+        </div>
+
+        <div id="loginErrorMsg" class="alert-error hidden">
+          <i class="fa-solid fa-triangle-exclamation"></i> Usuário ou senha incorretos!
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+          <i class="fa-solid fa-right-to-bracket"></i> Entrar no Sistema
+        </button>
+      </form>
+
+      <div class="login-accounts-hint">
+        <span class="hint-title">Contas cadastradas para teste:</span>
+        <ul>
+          <li><strong>marvin</strong> / <code>Edifica0804@</code> (Gestão - Acesso Total)</li>
+          <li><strong>Jacklima</strong> / <code>Edifica0804</code> (Gestão - Acesso Total)</li>
+          <li><strong>Luiz_Franco</strong> / <code>AdmEdifica1008</code> (Administrativo - Restrito)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SCREEN 2: MAIN APP LAYOUT ==================== -->
+  <div id="appLayout" class="app-layout hidden">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="mainSidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <div class="logo-icon">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+          </div>
+          <div class="logo-text">
+            <span class="brand-name">Fix<span class="highlight">Flow</span></span>
+            <span class="brand-tagline">Edifica Soluções</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empresa & Filial Active Selector -->
+      <div class="tenant-card">
+        <div class="tenant-icon">
+          <i class="fa-solid fa-building-flag"></i>
+        </div>
+        <div class="tenant-info">
+          <span class="tenant-label">Empresa / Filial Ativa</span>
+          <select id="filialSelect" class="tenant-selector" title="Alternar Filial">
+            <option value="Edifica Soluções">Edifica Soluções (Matriz)</option>
+            <option value="Soler Serv">Soler Serv (Filial)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="sidebar-menu">
+        <div class="menu-category admin-only">PRINCIPAL</div>
+        <a href="#" class="menu-item active admin-only" data-tab="dashboardTab" id="navDashboard">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard Geral</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="servicesTab" id="navServices">
+          <i class="fa-solid fa-clipboard-list"></i>
+          <span>Ordens de Serviço (SS)</span>
+          <span class="badge badge-primary" id="badgeSSCount">0</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="financesTab" id="navFinances">
+          <i class="fa-solid fa-coins"></i>
+          <span>Lançamentos FIN (Saídas)</span>
+        </a>
+        
+        <div class="menu-category admin-only">FINANCEIRO & GESTÃO</div>
+        <a href="#" class="menu-item admin-only" data-tab="dpTab" id="navDP">
+          <i class="fa-solid fa-building-user"></i>
+          <span>Despesas da Empresa (DP)</span>
+        </a>
+        <a href="#" class="menu-item admin-only" data-tab="invoicesTab" id="navInvoices">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+          <span>Notas Fiscais & Previsão</span>
+        </a>
+
+        <div class="menu-category admin-only">AÇÕES EM MASSA</div>
+        <a href="#" class="menu-item admin-only" id="btnOpenImportModalNav">
+          <i class="fa-solid fa-file-import"></i>
+          <span>Importar (Excel/CSV)</span>
+        </a>
+        <a href="#" class="menu-item admin-only" id="btnOpenExportModalNav">
+          <i class="fa-solid fa-file-export"></i>
+          <span>Exportar Dados</span>
+        </a>
+      </nav>
+
+      <!-- Logged User Info Card -->
+      <div class="user-logged-card">
+        <div class="user-avatar">
+          <i class="fa-solid fa-user-gear"></i>
+        </div>
+        <div class="user-details">
+          <strong id="loggedUserName">Usuário</strong>
+          <span class="badge badge-emerald" id="loggedUserRole">Perfil</span>
+        </div>
+        <button class="btn-logout" id="btnLogout" title="Sair do Sistema">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-toggle-sidebar" id="btnToggleSidebar" title="Recolher/Expandir Menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="page-title-box">
+            <h1 id="pageTitle">Dashboard Geral</h1>
+            <span class="page-subtitle" id="pageSubtitle">Visão integrada das filiais da Edifica Soluções</span>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <!-- Global Search Input -->
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="globalSearchInput" placeholder="Buscar por código, cliente ou NF...">
+          </div>
+
+          <!-- Action Buttons -->
+          <button class="btn btn-secondary btn-icon-text admin-only" id="btnOpenImportModalTop">
+            <i class="fa-solid fa-file-import"></i>
+            <span>Importar</span>
+          </button>
+
+          <button class="btn btn-secondary btn-icon-text admin-only" id="btnOpenExportModalTop">
+            <i class="fa-solid fa-file-export"></i>
+            <span>Exportar</span>
+          </button>
+
+          <button class="btn btn-secondary btn-icon-text" id="btnOpenNewFINModal">
+            <i class="fa-solid fa-minus-circle"></i>
+            <span>Lançar Saída (FIN)</span>
+          </button>
+
+          <button class="btn btn-primary btn-icon-text" id="btnOpenNewSSModal">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Nova OS (SS)</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Container Body -->
+      <div class="content-body">
+        
+        <!-- ==================== TAB 1: DASHBOARD GERAL ==================== -->
+        <section id="dashboardTab" class="tab-pane active admin-only">
+          
+          <!-- KPI Cards Grid -->
+          <div class="kpi-grid">
+            
+            <div class="kpi-card kpi-blue">
+              <div class="kpi-icon">
+                <i class="fa-solid fa-wallet"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-title">Faturamento Total (Contratado)</span>
+                <h3 class="kpi-value" id="kpiTotalRevenue">R$ 0,00</h3>
+                <span class="kpi-trend positive">
+                  <i class="fa-solid fa-circle-check"></i> <span id="kpiCountSSConcluidas">0 OS Finalizadas</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="kpi-card kpi-orange">
+              <div class="kpi-icon">
+                <i class="fa-solid fa-boxes-packing"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-title">Custos Diretos de Serviços (SS)</span>
+                <h3 class="kpi-value" id="kpiDirectCosts">R$ 0,00</h3>
+                <span class="kpi-trend negative">
+                  <i class="fa-solid fa-arrow-trend-down"></i> Peças, Terceiros & Mão de Obra
+                </span>
+              </div>
+            </div>
+
+            <div class="kpi-card kpi-purple">
+              <div class="kpi-icon">
+                <i class="fa-solid fa-building-circle-exclamation"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-title">Despesas da Empresa (DP)</span>
+                <h3 class="kpi-value" id="kpiDPExpenses">R$ 0,00</h3>
+                <span class="kpi-trend neutral">
+                  <i class="fa-solid fa-calculator"></i> Custos Operacionais & Impostos
+                </span>
+              </div>
+            </div>
+
+            <div class="kpi-card kpi-emerald">
+              <div class="kpi-icon">
+                <i class="fa-solid fa-chart-line"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-title">Lucro Bruto Real</span>
+                <h3 class="kpi-value" id="kpiNetProfit">R$ 0,00</h3>
+                <span class="kpi-trend positive" id="kpiProfitMargin">
+                  Margem: 0%
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Financial Charts Row -->
+          <div class="charts-grid">
+            
+            <div class="chart-card chart-large">
+              <div class="chart-header">
+                <div>
+                  <h3 class="chart-title"><i class="fa-solid fa-calendar-days"></i> Previsão de Fluxo de Caixa</h3>
+                  <span class="chart-subtitle">Entradas de NFs e Recebimentos vs Saídas Operacionais (Próximos Meses)</span>
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="chartCashFlow"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card chart-small">
+              <div class="chart-header">
+                <div>
+                  <h3 class="chart-title"><i class="fa-solid fa-chart-pie"></i> Composição de Custos</h3>
+                  <span class="chart-subtitle">OSs vs Despesas Gerais DP</span>
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="chartCostDistribution"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Grid Alerts & Status -->
+          <div class="dashboard-bottom-grid">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Status dos Serviços da Filial</h3>
+              </div>
+              <div class="status-bars-list" id="statusOverviewList"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-bell"></i> Alertas e Pagamentos Pendentes</h3>
+              </div>
+              <div class="alerts-list" id="dashboardAlertsList"></div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== TAB 2: ORDENS DE SERVIÇO (SS) ==================== -->
+        <section id="servicesTab" class="tab-pane">
+          
+          <!-- Toolbar & Advanced Filter Panel -->
+          <div class="toolbar-card">
+            <div class="toolbar-top-row">
+              <div class="view-switcher">
+                <button class="btn-toggle active" id="btnViewKanban" title="Visualização Kanban">
+                  <i class="fa-solid fa-table-columns"></i> Kanban
+                </button>
+                <button class="btn-toggle" id="btnViewTable" title="Visualização Tabela">
+                  <i class="fa-solid fa-list"></i> Tabela
+                </button>
+              </div>
+
+              <div class="toolbar-right">
+                <button class="btn btn-outline-secondary btn-sm" id="btnResetSSFilters">
+                  <i class="fa-solid fa-rotate-left"></i> Limpar Filtros
+                </button>
+                <button class="btn btn-primary btn-sm" id="btnNewSSFromTab">
+                  <i class="fa-solid fa-plus"></i> Nova OS (SS)
+                </button>
+              </div>
+            </div>
+
+            <!-- Advanced Filters Row -->
+            <div class="filters-panel">
+              <div class="filter-group">
+                <label><i class="fa-solid fa-building"></i> Filial:</label>
+                <select id="filterSSFilial" class="form-control-sm">
+                  <option value="all">Todas as Filiais</option>
+                  <option value="Edifica Soluções">Edifica Soluções</option>
+                  <option value="Soler Serv">Soler Serv</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label><i class="fa-solid fa-filter"></i> Status:</label>
+                <select id="filterSSStatus" class="form-control-sm">
+                  <option value="all">Todos os Status</option>
+                  <option value="Aguardando Início">Aguardando Início</option>
+                  <option value="Em Andamento">Em Andamento</option>
+                  <option value="Aguardando OC">Aguardando OC</option>
+                  <option value="Aguardando Faturamento">Aguardando Faturamento</option>
+                  <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+                  <option value="Pagamento Atrasado">Pagamento Atrasado</option>
+                  <option value="Recebido">Recebido</option>
+                  <option value="Cancelado">Cancelado</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label><i class="fa-solid fa-screwdriver-wrench"></i> Tipo:</label>
+                <select id="filterSSTipo" class="form-control-sm">
+                  <option value="all">Preventiva & Corretiva</option>
+                  <option value="Preventiva">Preventiva</option>
+                  <option value="Corretiva">Corretiva</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label><i class="fa-solid fa-user-gear"></i> Responsável:</label>
+                <select id="filterSSResponsavel" class="form-control-sm">
+                  <option value="all">Todos os Técnicos</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- KANBAN BOARD VIEW -->
+          <div id="kanbanViewContainer" class="kanban-board">
+            
+            <div class="kanban-column" data-status="Aguardando Início">
+              <div class="column-header col-amber">
+                <span class="col-title"><i class="fa-solid fa-clock"></i> Aguardando Início</span>
+                <span class="col-count" id="countColInicio">0</span>
+              </div>
+              <div class="kanban-cards" id="cardsColInicio"></div>
+            </div>
+
+            <div class="kanban-column" data-status="Em Andamento">
+              <div class="column-header col-blue">
+                <span class="col-title"><i class="fa-solid fa-gears"></i> Em Andamento</span>
+                <span class="col-count" id="countColAndamento">0</span>
+              </div>
+              <div class="kanban-cards" id="cardsColAndamento"></div>
+            </div>
+
+            <div class="kanban-column" data-status="Aguardando OC">
+              <div class="column-header col-purple">
+                <span class="col-title"><i class="fa-solid fa-file-contract"></i> Aguardando OC</span>
+                <span class="col-count" id="countColOC">0</span>
+              </div>
+              <div class="kanban-cards" id="cardsColOC"></div>
+            </div>
+
+            <div class="kanban-column" data-status="Aguardando Faturamento">
+              <div class="column-header col-cyan">
+                <span class="col-title"><i class="fa-solid fa-file-invoice"></i> Aguardando Faturamento</span>
+                <span class="col-count" id="countColFat">0</span>
+              </div>
+              <div class="kanban-cards" id="cardsColFat"></div>
+            </div>
+
+            <div class="kanban-column" data-status="Aguardando Pagamento">
+              <div class="column-header col-orange">
+                <span class="col-title"><i class="fa-solid fa-hand-holding-dollar"></i> Aguardando Pagamento</span>
+                <span class="col-count" id="countColPag">0</span>
+              </div>
+              <div class="kanban-cards" id="cardsColPag"></div>
+            </div>
+
+            <div class="kanban-column" data-status="Recebido">
+              <div class="column-header col-emerald">
+                <span class="col-title"><i class="fa-solid fa-circle-check"></i> Recebido / Concluído</span>
+                <span class="col-count" id="countColRecebido">0</span>
+              </div>
+              <div class="kanban-cards" id="cardsColRecebido"></div>
+            </div>
+
+          </div>
+
+          <!-- TABLE VIEW -->
+          <div id="tableViewContainer" class="table-container hidden">
+            <table class="data-table" id="tableServices">
+              <thead>
+                <tr>
+                  <th>Código OS</th>
+                  <th>Filial</th>
+                  <th>Cliente Final</th>
+                  <th>Cliente Faturamento</th>
+                  <th>Cidade/UF</th>
+                  <th>Tipo</th>
+                  <th>Status</th>
+                  <th>Técnico</th>
+                  <th>Valor Cobrado</th>
+                  <th class="admin-only">Custo Previsto</th>
+                  <th class="admin-only">Custo Acumulado (FIN)</th>
+                  <th class="admin-only">BDI (%)</th>
+                  <th class="admin-only">Lucro Bruto</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tableServicesBody"></tbody>
+            </table>
+          </div>
+
+        </section>
+
+        <!-- ==================== TAB 3: LANÇAMENTOS FIN (CUSTOS DE OS) ==================== -->
+        <section id="financesTab" class="tab-pane">
+          
+          <div class="card">
+            <div class="card-header flex-between">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-receipt"></i> Lançamentos Financeiros de Saídas (FIN)</h3>
+                <span class="card-subtitle">Clique em qualquer item para editar os detalhes do lançamento</span>
+              </div>
+              <button class="btn btn-primary btn-sm" id="btnNewFINFromTab">
+                <i class="fa-solid fa-plus"></i> Novo Lançamento FIN
+              </button>
+            </div>
+
+            <!-- Advanced Filters Bar for FIN -->
+            <div class="filters-panel border-bottom-panel">
+              <div class="filter-group">
+                <label><i class="fa-solid fa-building"></i> Filial:</label>
+                <select id="filterFINFilial" class="form-control-sm">
+                  <option value="all">Todas as Filiais</option>
+                  <option value="Edifica Soluções">Edifica Soluções</option>
+                  <option value="Soler Serv">Soler Serv</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label><i class="fa-solid fa-tags"></i> Centro de Custo:</label>
+                <select id="filterFINCentroCusto" class="form-control-sm">
+                  <option value="all">Todos os Centros de Custo</option>
+                  <option value="Peças / Insumos OS">Peças / Insumos OS</option>
+                  <option value="Mão de Obra Terceirizada">Mão de Obra Terceirizada</option>
+                  <option value="Ferramentas & Equipamentos">Ferramentas & Equipamentos</option>
+                  <option value="Frota & Combustível Geral">Frota & Combustível Geral</option>
+                  <option value="Administrativo / Aluguel">Administrativo / Aluguel</option>
+                  <option value="Imposto">Imposto</option>
+                  <option value="Retirada de Lucro">Retirada de Lucro</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label><i class="fa-solid fa-wallet"></i> Status Pagamento:</label>
+                <select id="filterFINStatus" class="form-control-sm">
+                  <option value="all">Todos os Status</option>
+                  <option value="Pago">Pago</option>
+                  <option value="Pendente">Pendente</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Clickable Cards / Table for FIN -->
+            <div class="table-container">
+              <table class="data-table table-clickable">
+                <thead>
+                  <tr>
+                    <th>Código FIN</th>
+                    <th>Data Pgto Real</th>
+                    <th>Filial Pagadora</th>
+                    <th>Descrição do Gasto</th>
+                    <th>Vínculo (OS)</th>
+                    <th>Centro de Custo</th>
+                    <th>Parcelas</th>
+                    <th>Valor (R$)</th>
+                    <th>Status</th>
+                    <th>Lançado Por</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tableFinancesBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== TAB 4: DESPESAS DA EMPRESA (DP) [ADMIN] ==================== -->
+        <section id="dpTab" class="tab-pane admin-only">
+          
+          <div class="card">
+            <div class="card-header flex-between">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-building-user"></i> Despesas Gerais da Empresa (DP)</h3>
+                <span class="card-subtitle">Custos operacionais fixos, aluguel, sistemas, pro-labore e impostos (Cards clicáveis para edição)</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btnNewDPFromTab">
+                <i class="fa-solid fa-plus"></i> Lançar Despesa DP
+              </button>
+            </div>
+
+            <!-- Filters for DP -->
+            <div class="filters-panel border-bottom-panel">
+              <div class="filter-group">
+                <label><i class="fa-solid fa-building"></i> Filial:</label>
+                <select id="filterDPFilial" class="form-control-sm">
+                  <option value="all">Todas as Filiais</option>
+                  <option value="Edifica Soluções">Edifica Soluções</option>
+                  <option value="Soler Serv">Soler Serv</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label><i class="fa-solid fa-tags"></i> Centro de Custo:</label>
+                <select id="filterDPCentroCusto" class="form-control-sm">
+                  <option value="all">Todos os Centros de Custo</option>
+                  <option value="Administrativo / Aluguel">Administrativo / Aluguel</option>
+                  <option value="Frota & Combustível Geral">Frota & Combustível Geral</option>
+                  <option value="Imposto">Imposto</option>
+                  <option value="Retirada de Lucro">Retirada de Lucro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table table-clickable">
+                <thead>
+                  <tr>
+                    <th>Código DP</th>
+                    <th>Data Pgto Real</th>
+                    <th>Filial Pagadora</th>
+                    <th>Descrição da Despesa</th>
+                    <th>Centro de Custo</th>
+                    <th>Parcelas</th>
+                    <th>Valor (R$)</th>
+                    <th>Status</th>
+                    <th>Lançado Por</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tableDPBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== TAB 5: NOTAS FISCAIS & PREVISÃO ==================== -->
+        <section id="invoicesTab" class="tab-pane admin-only">
+          <div class="card">
+            <div class="card-header flex-between">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-file-invoice-dollar"></i> Registro de Notas Fiscais & Recebimentos</h3>
+                <span class="card-subtitle">Mapeamento de faturamento e fluxo de caixa a receber</span>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nº da Nota Fiscal</th>
+                    <th>OS Vinculada</th>
+                    <th>Filial</th>
+                    <th>Cliente Faturamento</th>
+                    <th>CNPJ Faturamento</th>
+                    <th>Nº OC</th>
+                    <th>Data Faturamento</th>
+                    <th>Data Recebimento Prevista</th>
+                    <th>Data Recebimento Real</th>
+                    <th>Valor Cobrado</th>
+                    <th>Desconto</th>
+                    <th>Valor Recebido Real</th>
+                  </tr>
+                </thead>
+                <tbody id="tableInvoicesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ==================== MODAL: CADASTRO / EDIÇÃO DE ORDEM DE SERVIÇO (SS) ==================== -->
+  <div class="modal-backdrop hidden" id="modalSSForm">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 id="modalSSTitle"><i class="fa-solid fa-clipboard-check"></i> Cadastrar Nova Ordem de Serviço (SS)</h3>
+        <button class="btn-close-modal closeSSFormModal">&times;</button>
+      </div>
+      <form id="formSS">
+        <input type="hidden" id="ssEditId" value="">
+        <div class="modal-body">
+          <div class="form-grid">
+            
+            <div class="form-group">
+              <label>Cliente Final *</label>
+              <input type="text" id="ssClienteFinal" class="form-control" placeholder="Cliente onde o serviço é executado..." required>
+            </div>
+
+            <div class="form-group">
+              <label>Cliente Faturamento *</label>
+              <input type="text" id="ssClienteFaturamento" class="form-control" placeholder="Razão social / cliente contratante..." required>
+              <label class="checkbox-inline">
+                <input type="checkbox" id="chkSameClient"> Mesmo cliente do faturamento
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>Cidade / Estado (Local) *</label>
+              <input type="text" id="ssCidadeEstado" class="form-control" placeholder="Ex: São Paulo / SP, Campinas / SP..." required>
+            </div>
+
+            <div class="form-group">
+              <label>Filial Responsável *</label>
+              <select id="ssFilial" class="form-control" required>
+                <option value="Edifica Soluções">Edifica Soluções</option>
+                <option value="Soler Serv">Soler Serv</option>
+              </select>
+            </div>
+
+            <div class="form-group col-full">
+              <label>Descrição Detalhada do Serviço *</label>
+              <textarea id="ssDescricao" class="form-control" rows="3" placeholder="Descreva a demanda de manutenção..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de Manutenção *</label>
+              <select id="ssTipo" class="form-control" required>
+                <option value="Preventiva">Preventiva</option>
+                <option value="Corretiva">Corretiva</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Técnico Responsável</label>
+              <input type="text" id="ssTecnico" class="form-control" placeholder="Nome do técnico...">
+            </div>
+
+            <div class="form-group">
+              <label>Valor Contratado / Cobrado (R$) *</label>
+              <input type="number" step="0.01" id="ssValorCobrado" class="form-control" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group">
+              <label>Previsão Gasto Mão de Obra (R$)</label>
+              <input type="number" step="0.01" id="ssPrevMaoObra" class="form-control" placeholder="0.00 (Opcional)">
+            </div>
+
+            <div class="form-group">
+              <label>Previsão Gasto Material (R$)</label>
+              <input type="number" step="0.01" id="ssPrevMaterial" class="form-control" placeholder="0.00 (Opcional)">
+            </div>
+
+            <div class="form-group">
+              <label>Status Inicial *</label>
+              <select id="ssStatus" class="form-control" required>
+                <option value="Aguardando Início">Aguardando Início</option>
+                <option value="Em Andamento" selected>Em Andamento</option>
+                <option value="Aguardando OC">Aguardando OC</option>
+                <option value="Aguardando Faturamento">Aguardando Faturamento</option>
+                <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+                <option value="Pagamento Atrasado">Pagamento Atrasado</option>
+                <option value="Recebido">Recebido</option>
+                <option value="Cancelado">Cancelado</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary closeSSFormModal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Salvar Ordem de Serviço</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CADASTRO / EDIÇÃO DE FIN & DP ==================== -->
+  <div class="modal-backdrop hidden" id="modalFINForm">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 id="modalFINTitle"><i class="fa-solid fa-hand-holding-dollar"></i> Lançamento Financeiro (FIN / DP)</h3>
+        <button class="btn-close-modal closeFINFormModal">&times;</button>
+      </div>
+      <form id="formFIN">
+        <input type="hidden" id="finEditId" value="">
+        <div class="modal-body">
+          <div class="form-grid">
+            
+            <div class="form-group col-full" id="containerTipoDestino">
+              <label>Tipo de Lançamento *</label>
+              <div class="radio-tile-group">
+                <label class="radio-tile">
+                  <input type="radio" name="finTipoDestino" value="SS" checked id="radioDestinoSS">
+                  <span class="tile-label"><i class="fa-solid fa-wrench"></i> Custo de Ordem de Serviço (SS)</span>
+                </label>
+                <label class="radio-tile">
+                  <input type="radio" name="finTipoDestino" value="DP" id="radioDestinoDP">
+                  <span class="tile-label"><i class="fa-solid fa-building"></i> Despesa Geral da Empresa (DP)</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group col-full" id="groupSelectSS">
+              <label>Selecione a Ordem de Serviço (SS) Vinculada *</label>
+              <select id="finVinculoSS" class="form-control">
+                <!-- Injected via JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Filial Pagadora *</label>
+              <select id="finFilial" class="form-control" required>
+                <option value="Edifica Soluções">Edifica Soluções</option>
+                <option value="Soler Serv">Soler Serv</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Centro de Custo *</label>
+              <select id="finCentroCusto" class="form-control" required>
+                <option value="Peças / Insumos OS">Peças / Insumos OS</option>
+                <option value="Mão de Obra Terceirizada">Mão de Obra Terceirizada</option>
+                <option value="Ferramentas & Equipamentos">Ferramentas & Equipamentos</option>
+                <option value="Frota & Combustível Geral">Frota & Combustível Geral</option>
+                <option value="Administrativo / Aluguel">Administrativo / Aluguel</option>
+                <option value="Imposto">Imposto</option>
+                <option value="Retirada de Lucro">Retirada de Lucro</option>
+              </select>
+            </div>
+
+            <div class="form-group col-full">
+              <label>Descrição do Gasto / Fornecedor *</label>
+              <input type="text" id="finDescricao" class="form-control" placeholder="Descrição da compra ou pagamento..." required>
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de Compra</label>
+              <input type="text" id="finTipoCompra" class="form-control" placeholder="Ex: Peças, Ferramentas, Serviço...">
+            </div>
+
+            <div class="form-group">
+              <label>Número de Parcelas</label>
+              <input type="number" id="finParcelas" class="form-control" value="1" min="1">
+            </div>
+
+            <div class="form-group">
+              <label>Valor Total (R$) *</label>
+              <input type="number" step="0.01" id="finValor" class="form-control" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group">
+              <label>Chave PIX do Favorecido</label>
+              <input type="text" id="finChavePix" class="form-control" placeholder="CNPJ, CPF, E-mail ou Aleatória...">
+            </div>
+
+            <div class="form-group">
+              <label>Data Previsão de Pagamento</label>
+              <input type="date" id="finDataPrevisao" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Data de Pagamento Real</label>
+              <input type="date" id="finDataPagamentoReal" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Status do Pagamento</label>
+              <select id="finStatusPagamento" class="form-control">
+                <option value="Pendente" selected>Pendente</option>
+                <option value="Pago">Pago</option>
+              </select>
+            </div>
+
+            <div class="form-group col-full">
+              <label>Anexar Comprovante ou Nota Fiscal (PDF ou Imagem)</label>
+              <input type="file" id="finFileAttachment" class="form-control" accept="image/*, application/pdf">
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary closeFINFormModal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Salvar Lançamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: DETALHES COMPLETO DO CARD DA OS (SS) ==================== -->
+  <div class="modal-backdrop hidden" id="modalSSDetails">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header header-with-status">
+        <div>
+          <span class="badge badge-primary" id="detailSSCode">SS-XXXX</span>
+          <h3 id="detailSSClienteFinal">Nome do Cliente</h3>
+          <span class="card-subtitle-line" id="detailSSFilialLocal">Filial / Cidade</span>
+        </div>
+        <!-- Status button positioned on top right -->
+        <div class="top-right-status-box">
+          <label>Status da OS:</label>
+          <select id="detailSSStatusSelect" class="form-control-sm font-bold">
+            <option value="Aguardando Início">Aguardando Início</option>
+            <option value="Em Andamento">Em Andamento</option>
+            <option value="Aguardando OC">Aguardando OC</option>
+            <option value="Aguardando Faturamento">Aguardando Faturamento</option>
+            <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+            <option value="Pagamento Atrasado">Pagamento Atrasado</option>
+            <option value="Recebido">Recebido</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+          <button class="btn-close-modal" id="closeSSDetailsModal">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- BLOCK 1: FINANCIAL INDICATORS & EDITABLE FIELDS -->
+        <div class="card-block-container">
+          <h4 class="block-title"><i class="fa-solid fa-calculator"></i> Indicadores Financeiros & BDI</h4>
+          
+          <div class="ribbon-grid-4">
+            <div class="ribbon-box">
+              <span class="ribbon-lbl">Custo Previsto (MO + Mat.)</span>
+              <input type="number" step="0.01" id="inputEditPrevGasto" class="form-control-sm text-bold" value="0.00">
+            </div>
+
+            <div class="ribbon-box">
+              <span class="ribbon-lbl">Custo Acumulado (FINs)</span>
+              <span class="ribbon-val text-crimson" id="detailSSCustosFIN">R$ 0,00</span>
+            </div>
+
+            <div class="ribbon-box">
+              <span class="ribbon-lbl">Diferença Custo (Prev. vs Real)</span>
+              <span class="ribbon-val text-bold" id="detailSSDiffCustos">R$ 0,00</span>
+            </div>
+
+            <div class="ribbon-box highlight-emerald">
+              <span class="ribbon-lbl">BDI Atual (%)</span>
+              <span class="ribbon-val font-extrabold" id="detailSSBDI">0%</span>
+            </div>
+          </div>
+
+          <div class="ribbon-grid-3 margin-top-sm">
+            <div class="ribbon-box">
+              <span class="ribbon-lbl">Valor Cobrado Contratado (R$)</span>
+              <input type="number" step="0.01" id="inputEditValorCobrado" class="form-control-sm text-bold text-emerald" value="0.00">
+            </div>
+
+            <div class="ribbon-box">
+              <span class="ribbon-lbl">Lucro Bruto (R$)</span>
+              <span class="ribbon-val text-emerald text-bold" id="detailSSLucroBruto">R$ 0,00</span>
+            </div>
+
+            <div class="ribbon-box">
+              <span class="ribbon-lbl">Lucro Bruto sobre Cobrado (%)</span>
+              <span class="ribbon-val text-emerald text-bold" id="detailSSLucroBrutoPct">0%</span>
+            </div>
+          </div>
+          
+          <button class="btn btn-secondary btn-xs margin-top-sm" id="btnSaveCardHeaderEdits">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações de Valor/Previsão
+          </button>
+        </div>
+
+        <!-- BLOCK 2: FATURAMENTO & NOTA FISCAL (WITH DISCOUNT FLAG) -->
+        <div class="card-block-container admin-only">
+          <h4 class="block-title"><i class="fa-solid fa-file-invoice-dollar"></i> Dados de Faturamento & Nota Fiscal</h4>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Cliente Faturamento</label>
+              <input type="text" id="detailSSClienteFatInput" class="form-control-sm">
+            </div>
+
+            <div class="form-group">
+              <label>CNPJ de Faturamento</label>
+              <input type="text" id="detailSSCNPJFat" class="form-control-sm" placeholder="00.000.000/0001-00">
+            </div>
+
+            <div class="form-group">
+              <label>Número de OC (Ordem de Compra)</label>
+              <input type="text" id="detailSSNumeroOC" class="form-control-sm" placeholder="Ex: OC-9842">
+            </div>
+
+            <div class="form-group">
+              <label>Número da Nota Fiscal (NF-e)</label>
+              <input type="text" id="detailSSNumeroNF" class="form-control-sm" placeholder="Ex: NF-4055">
+            </div>
+
+            <div class="form-group">
+              <label>Data de Faturamento</label>
+              <input type="date" id="detailSSDataFat" class="form-control-sm">
+            </div>
+
+            <div class="form-group">
+              <label>Data Recebimento Prevista</label>
+              <input type="date" id="detailSSDataRecPrev" class="form-control-sm">
+            </div>
+
+            <div class="form-group">
+              <label>Data Recebimento Real</label>
+              <input type="date" id="detailSSDataRecReal" class="form-control-sm">
+            </div>
+
+            <!-- Discount Flag -->
+            <div class="form-group col-full discount-box">
+              <label class="checkbox-inline font-bold text-amber">
+                <input type="checkbox" id="chkPossuiDesconto"> Possui Desconto no Faturamento?
+              </label>
+
+              <div id="discountFieldsGroup" class="form-grid margin-top-xs hidden">
+                <div class="form-group">
+                  <label>Descrição do Desconto</label>
+                  <input type="text" id="detailSSDescDesconto" class="form-control-sm" placeholder="Motivo do desconto...">
+                </div>
+                <div class="form-group">
+                  <label>Valor do Desconto (R$)</label>
+                  <input type="number" step="0.01" id="detailSSValorDesconto" class="form-control-sm" placeholder="0.00">
+                </div>
+              </div>
+
+              <div class="margin-top-xs font-bold text-emerald">
+                Valor Real Recebido (Cobrado - Desconto): <span id="detailSSValorRealRecebido">R$ 0,00</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary btn-xs margin-top-sm" id="btnSaveCardFatEdits">
+            <i class="fa-solid fa-save"></i> Atualizar Faturamento
+          </button>
+        </div>
+
+        <!-- BLOCK 3: COSTS TABLE (FIN ENTRIES ATTACHED) -->
+        <div class="card-block-container admin-only">
+          <div class="flex-between">
+            <h4 class="block-title"><i class="fa-solid fa-coins"></i> Lançamentos Financeiros da OS (FIN)</h4>
+            <button class="btn btn-secondary btn-xs" id="btnAddFINDirectToSS">
+              <i class="fa-solid fa-plus"></i> Adicionar Custo a esta OS
+            </button>
+          </div>
+          
+          <div class="table-container margin-top-xs">
+            <table class="data-table-sm table-rounded">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Data Pgto Real</th>
+                  <th>Descrição</th>
+                  <th>Centro de Custo</th>
+                  <th>Valor (R$)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="detailSSTableFINBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- BLOCK 4: COMMENTS & MENTIONS -->
+        <div class="card-block-container">
+          <h4 class="block-title"><i class="fa-solid fa-comments"></i> Comentários & Menções (Mencione SS-XXXX ou FIN-XXXX)</h4>
+          
+          <div class="comments-list" id="detailSSCommentsList"></div>
+
+          <div class="add-comment-box margin-top-sm">
+            <textarea id="inputNewSSComment" class="form-control-sm" rows="2" placeholder="Escreva um comentário (Ex: Verificar custo em SS-1001 ou FIN-5001)..."></textarea>
+            <button class="btn btn-primary btn-sm margin-top-xs" id="btnPostSSComment">
+              <i class="fa-solid fa-paper-plane"></i> Enviar Comentário
+            </button>
+          </div>
+        </div>
+
+        <!-- BLOCK 5: ATTACHMENTS & DOCUMENT VIEWER -->
+        <div class="card-block-container">
+          <div class="flex-between">
+            <h4 class="block-title"><i class="fa-solid fa-paperclip"></i> Anexos & Documentos do Serviço</h4>
+            <input type="file" id="inputAddAttachmentToSS" hidden accept="image/*,application/pdf">
+            <button class="btn btn-outline-secondary btn-xs" onclick="document.getElementById('inputAddAttachmentToSS').click()">
+              <i class="fa-solid fa-upload"></i> Anexar Arquivo
+            </button>
+          </div>
+          <div class="attachments-grid margin-top-xs" id="detailSSAttachmentsGrid"></div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCloseSSDetailsBottom">Fechar Card</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: IMPORTAÇÃO FLEXÍVEL (SS OU FIN) ==================== -->
+  <div class="modal-backdrop hidden" id="modalImportFlex">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-import"></i> Importador de Dados (Excel / CSV)</h3>
+        <button class="btn-close-modal" class="closeImportModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="form-group">
+          <label>Selecione o Tipo de Registro que Deseja Importar *</label>
+          <div class="radio-tile-group">
+            <label class="radio-tile">
+              <input type="radio" name="importTypeTarget" value="SS" checked id="radioImportSS">
+              <span class="tile-label"><i class="fa-solid fa-clipboard-list"></i> Importar Ordens de Serviço (SS)</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="importTypeTarget" value="FIN" id="radioImportFIN">
+              <span class="tile-label"><i class="fa-solid fa-receipt"></i> Importar Lançamentos Financeiros (FIN)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="drop-zone margin-top-sm" id="csvDropZone">
+          <div class="drop-zone-content">
+            <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+            <h4>Arraste seu arquivo `.csv` ou `.xlsx` aqui</h4>
+            <p>Ou clique para selecionar no seu computador</p>
+            <input type="file" id="csvFileInput" accept=".csv, .xlsx, .xls" hidden>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('csvFileInput').click()">
+              <i class="fa-solid fa-folder-open"></i> Selecionar Arquivo
+            </button>
+          </div>
+        </div>
+
+        <div class="template-box margin-top-sm">
+          <div>
+            <h4><i class="fa-solid fa-circle-info"></i> Modelo Padrão de Planilha</h4>
+            <p>Baixe a planilha de exemplo formatada com todos os campos exigidos.</p>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" id="btnDownloadTemplate">
+            <i class="fa-solid fa-download"></i> Baixar Modelo CSV
+          </button>
+        </div>
+
+        <div id="importPreviewContainer" class="import-preview hidden margin-top-sm">
+          <h4><i class="fa-solid fa-table"></i> Pré-visualização dos Dados (<span id="previewCount">0</span> registros)</h4>
+          <div class="table-container max-height-table margin-top-xs">
+            <table class="data-table" id="tableImportPreview">
+              <thead id="importPreviewHead"></thead>
+              <tbody id="importPreviewBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary closeImportModal">Cancelar</button>
+        <button type="button" class="btn btn-emerald hidden" id="btnConfirmImport">
+          <i class="fa-solid fa-check"></i> Importar Registros no FixFlow
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: EXPORTAÇÃO FLEXÍVEL (SS OU FIN) ==================== -->
+  <div class="modal-backdrop hidden" id="modalExportFlex">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-export"></i> Exportar Dados (CSV / Excel)</h3>
+        <button class="btn-close-modal" class="closeExportModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Selecione qual base de dados deseja exportar *</label>
+          <div class="radio-tile-group flex-column gap-sm">
+            <label class="radio-tile">
+              <input type="radio" name="exportTypeTarget" value="SS" checked>
+              <span class="tile-label"><i class="fa-solid fa-clipboard-list"></i> Exportar Ordens de Serviço (SS)</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="exportTypeTarget" value="FIN">
+              <span class="tile-label"><i class="fa-solid fa-receipt"></i> Exportar Lançamentos Financeiros (FIN)</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="exportTypeTarget" value="DP">
+              <span class="tile-label"><i class="fa-solid fa-building"></i> Exportar Despesas da Empresa (DP)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary closeExportModal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnExecuteExport">
+          <i class="fa-solid fa-download"></i> Baixar Arquivo CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: VISUALIZADOR DE DOCUMENTOS / IMAGENS ==================== -->
+  <div class="modal-backdrop hidden" id="modalFileViewer">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 id="viewerFileName">Visualizar Documento</h3>
+        <button class="btn-close-modal" id="closeFileViewerModal">&times;</button>
+      </div>
+      <div class="modal-body text-center" id="viewerContentArea"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCloseFileViewerBottom">Fechar Visualizador</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
